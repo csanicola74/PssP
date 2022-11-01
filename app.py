@@ -15,7 +15,7 @@ db = SQLAlchemy()
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://' + mysql_username + \
-    ':' + mysql_password + '@' + mysql_host + ':3306/patient-portal'
+    ':' + mysql_password + '@' + mysql_host + ':3306/patient_portal'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'sdf#$#dfjkhdf0SDJH0df9fd98343fdfu34rf'
 
@@ -278,9 +278,14 @@ def get_patient_details(mrn):
     db_conditions = Conditions.query.all()
     db_medications = Medications.query.all()
     db_procedures = Sx_Procedures.query.all()
-    return render_template("patient_details.html", patient_details=patient_details,
-                           patient_conditions=patient_conditions, patient_medications=patient_medications, patient_procedures=patient_procedures,
-                           db_conditions=db_conditions, db_medications=db_medications, db_procedures=db_procedures)
+    return render_template("patient_details.html",
+                           patient_details=patient_details,
+                           patient_conditions=patient_conditions,
+                           patient_medications=patient_medications,
+                           patient_procedures=patient_procedures,
+                           db_conditions=db_conditions,
+                           db_medications=db_medications,
+                           db_procedures=db_procedures)
 
 
 # this endpoint is for updating ONE patient condition
