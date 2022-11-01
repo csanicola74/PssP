@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
-import pymysql
+from . import _mysql
 
 load_dotenv()
 
@@ -91,7 +91,7 @@ class Conditions_patient(db.Model):
 
 
 class Conditions(db.Model):
-    __tablename__ = 'conditions'
+    __tablename__ = 'production_conditions'
 
     id = db.Column(db.Integer, primary_key=True)
     icd10_code = db.Column(db.String(255))

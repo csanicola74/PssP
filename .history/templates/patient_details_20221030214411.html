@@ -228,67 +228,38 @@ the second container is for vitals, the third container is for allergies, and th
                                         {% for db_procedure in db_procedures}
                                             {% if row.proc_cpt == db_procedure.proc_cpt}
                                                 {{db_procedure.proc_desc}}
-                                            {% endif %}
-                                        {% endfor %}
-                                        <br/>
-                                        <a href="/update_procedures/{{row.id}}" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modalitprocedure{{row.id}}">Edit</a>
                                     </td>
-                                </tr>
-
-
-
-
-                                <!--MODEL WINDOW FOR EDITING-->
-
-                                <div id="modaleditprocedure{{row.id}}" class="modal fade" role="dialog">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h4 class="modal-title">Update Information</h4>
-                                            </div>
-                                            <div class="modal-body">
-                                                <form action="{{url_for('update_procedures')}}" method="POST">
-
-                                                <div class="'form-group">
-                                                    <label for="mrn">MRN</label>
-                                                    <input type="text" class="form-control" name="mrn" value="{{row.mrn}}" readonly>
-                                                </div>
-
-                                                <div class="form-group">
-                                                    <label for="mrn">ROW ID</label>
-                                                    <input type="text" class="form-control" name="id" value="{{row.id}}" readonly>
-                                                </div>
-
-                                                <div class="form-group">
-                                                    <label for="mrn">EXISTING PROCEDURE</label>
-                                                    <input type="text" class="form-control" name="id" value="{{row.proc_cpt}}" readonly>
-                                                </div>
-
-                                                <!-- create a drop down that shows db_procedures -->
-                                                <div class="form-group">
-                                                    <label for="proc_cpt">Procedure Code</label>
-                                                    <select class="form-control" name="proc_cpt">
-                                                        {% for row in db_procedures %}
-                                                            <option value="{{row.proc_cpt}}">{{row.proc_desc}}</option>
-                                                        {% endfor %}
-                                                    </select>
-                                                </div>
-
-                                                <div class="form-group">
-                                                    <button class="btn btn-primary" type="submit">Update</button>
-                                                </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                    <th>Procedure Name</th>
+                                    {% for x in patient_procedure %}
+                                    <td>
+                                        {{x.proc_cpt}}
+                                    </td>
                                     {% endfor}
                                 </tr>
                             </table>
                         </div>
+
                     </div>
                 </div>
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
         </div>
     </div>
 </div>

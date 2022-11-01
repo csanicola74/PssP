@@ -3,7 +3,6 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
-import pymysql
 
 load_dotenv()
 
@@ -14,13 +13,10 @@ mysql_host = os.getenv("MYSQL_HOST")
 db = SQLAlchemy()
 app = Flask(__name__)
 
-# SqlAlchemy Database Configuration With Mysql
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:''@localhost/crud'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://' + mysql_username + \':' + mysql_password + '@' + mysql_host + ':8080/patient_portal'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://' + mysql_username + \
+    ':' + mysql_password + '@' + mysql_host + ':3306/patient_portal'
 # this is to keep track of database changes and save them in a special file
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'sdf#$#dfjkhdf0SDJH0df9fd98343fdfu34rf'
 
 db.init_app(app)
@@ -91,7 +87,7 @@ class Conditions_patient(db.Model):
 
 
 class Conditions(db.Model):
-    __tablename__ = 'conditions'
+    __tablename__ = 'production_conditions'
 
     id = db.Column(db.Integer, primary_key=True)
     icd10_code = db.Column(db.String(255))
@@ -303,7 +299,7 @@ def update_conditions():  # note this function needs to match name in html form 
 
 
 @app.route('/update_medications', methods=['GET', 'POST'])
-def update_medications():  # note this function needs to match name in html form action
+def update_conditions():  # note this function needs to match name in html form action
     if request.method == 'POST':
         # get mrn from form
         form_id = request.form.get('id')
@@ -326,16 +322,16 @@ def update_procedures():  # note this function needs to match name in html form 
         # get mrn from form
         form_id = request.form.get('id')
         print('form_id', form_id)
-        form_proc_cpt = request.form.get('proc_cpt')
-        print('form_proc_cpt', form_proc_cpt)
-        patient_procedure = Procedures_patient.query.filter_by(
+        form_icd10_code = request.form.get('icd10_code')
+        print('form_icd10_code', form_icd10_code)
+        patient_condition = Conditions_patient.query.filter_by(
             id=form_id).first()
-        print('patient_procedure', patient_procedure)
-        patient_procedure.proc_cpt = request.form.get('proc_cpt')
+        print('patient_condition', patient_condition)
+        patient_condition.icd10_code = request.form.get('icd10_code')
         db.session.commit()
         flash("Patient Condition Updated Successfully")
         # then return to patient details page
-        return redirect(url_for('get_patient_details', mrn=patient_procedure.mrn))
+        return redirect(url_for('get_patient_details', mrn=patient_condition.mrn))
 
 ##### CREATE BASIC API ENDPOINTS #####
 # get all Patients

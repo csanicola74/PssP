@@ -3,7 +3,6 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
-import pymysql
 
 load_dotenv()
 
@@ -18,9 +17,10 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:''@localhost/crud'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://' + mysql_username + \':' + mysql_password + '@' + mysql_host + ':8080/patient_portal'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://' + mysql_username + \
+    ':' + mysql_password + '@' + mysql_host + ':8080/patient_portal'
 # this is to keep track of database changes and save them in a special file
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'sdf#$#dfjkhdf0SDJH0df9fd98343fdfu34rf'
 
 db.init_app(app)
@@ -91,7 +91,7 @@ class Conditions_patient(db.Model):
 
 
 class Conditions(db.Model):
-    __tablename__ = 'conditions'
+    __tablename__ = 'production_conditions'
 
     id = db.Column(db.Integer, primary_key=True)
     icd10_code = db.Column(db.String(255))

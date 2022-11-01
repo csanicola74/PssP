@@ -3,7 +3,6 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
-import pymysql
 
 load_dotenv()
 
@@ -14,13 +13,10 @@ mysql_host = os.getenv("MYSQL_HOST")
 db = SQLAlchemy()
 app = Flask(__name__)
 
-# SqlAlchemy Database Configuration With Mysql
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:''@localhost/crud'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://' + mysql_username + \':' + mysql_password + '@' + mysql_host + ':8080/patient_portal'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://' + mysql_username + \
+    ':' + mysql_password + '@' + mysql_host + ':3306/patient_portal'
 # this is to keep track of database changes and save them in a special file
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'sdf#$#dfjkhdf0SDJH0df9fd98343fdfu34rf'
 
 db.init_app(app)
@@ -91,7 +87,7 @@ class Conditions_patient(db.Model):
 
 
 class Conditions(db.Model):
-    __tablename__ = 'conditions'
+    __tablename__ = 'production_conditions'
 
     id = db.Column(db.Integer, primary_key=True)
     icd10_code = db.Column(db.String(255))
@@ -154,50 +150,7 @@ class Medications(db.Model):
         }
 
 
-class Sx_Procedures(db.Model):
-    __tablename__ = 'sx_procedure'
-
-    id = db.Column(db.Integer, primary_key=True)
-    proc_cpt = db.Column(db.String(255))
-    proc_desc = db.Column(db.String(255))
-
-    # this first function __init__ is to establish the class for python GUI
-    def __init__(self, proc_cpt, proc_desc):
-        self.proc_cpt = proc_cpt
-        self.proc_desc = proc_desc
-
-    # this second function is for the API endpoints to return JSON
-    def to_json(self):
-        return {
-            'id': self.id,
-            'proc_cpt': self.proc_cpt,
-            'proc_desc': self.proc_desc
-        }
-
-
-class Procedures_patient(db.Model):
-    __tablename__ = 'patient_procedure'
-
-    id = db.Column(db.Integer, primary_key=True)
-    mrn = db.Column(db.String(255), db.ForeignKey('patients.mrn'))
-    proc_cpt = db.Column(db.String(255), db.ForeignKey(
-        'sx_procedure.proc_cpt'))
-
-    # this first function __init__ is to establish the class for python GUI
-    def __init__(self, mrn, proc_cpt):
-        self.mrn = mrn
-        self.proc_cpt = proc_cpt
-
-    # this second function is for the API endpoints to return JSON
-    def to_json(self):
-        return {
-            'id': self.id,
-            'mrn': self.mrn,
-            'proc_cpt': self.proc_cpt
-        }
-
-
-#### BASIC ROUTES WITHOUT DATA PULLS FOR NOW ####
+#### BASIC ROUTES WITHOUT DATA PULSL FOR NOW ####
 @app.route('/')
 def index():
     return render_template('landing.html')
@@ -274,13 +227,12 @@ def get_patient_details(mrn):
     patient_details = Patients.query.filter_by(mrn=mrn).first()
     patient_conditions = Conditions_patient.query.filter_by(mrn=mrn).all()
     patient_medications = Medications_patient.query.filter_by(mrn=mrn).all()
-    patient_procedures = Procedures_patient.query.filter_by(mrn=mrn).all()
+    patient_procedures =
     db_conditions = Conditions.query.all()
     db_medications = Medications.query.all()
-    db_procedures = Sx_Procedures.query.all()
     return render_template("patient_details.html", patient_details=patient_details,
-                           patient_conditions=patient_conditions, patient_medications=patient_medications, patient_procedures=patient_procedures,
-                           db_conditions=db_conditions, db_medications=db_medications, db_procedures=db_procedures)
+                           patient_conditions=patient_conditions, patient_medications=patient_medications,
+                           db_conditions=db_conditions, db_medications=db_medications)
 
 
 # this endpoint is for updating ONE patient condition
@@ -302,45 +254,8 @@ def update_conditions():  # note this function needs to match name in html form 
         return redirect(url_for('get_patient_details', mrn=patient_condition.mrn))
 
 
-@app.route('/update_medications', methods=['GET', 'POST'])
-def update_medications():  # note this function needs to match name in html form action
-    if request.method == 'POST':
-        # get mrn from form
-        form_id = request.form.get('id')
-        print('form_id', form_id)
-        form_med_ndc = request.form.get('med_ndc')
-        print('form_med_ndc', form_med_ndc)
-        patients_medications = Medications_patient.query.filter_by(
-            id=form_id).first()
-        print('patients_medications', patients_medications)
-        patients_medications.med_ndc = request.form.get('med_ndc')
-        db.session.commit()
-        flash("Patient Medication Updated Successfully")
-        # then return to patient details page
-        return redirect(url_for('get_patient_details', mrn=patients_medications.mrn))
-
-
-@app.route('/update_procedures', methods=['GET', 'POST'])
-def update_procedures():  # note this function needs to match name in html form action
-    if request.method == 'POST':
-        # get mrn from form
-        form_id = request.form.get('id')
-        print('form_id', form_id)
-        form_proc_cpt = request.form.get('proc_cpt')
-        print('form_proc_cpt', form_proc_cpt)
-        patient_procedure = Procedures_patient.query.filter_by(
-            id=form_id).first()
-        print('patient_procedure', patient_procedure)
-        patient_procedure.proc_cpt = request.form.get('proc_cpt')
-        db.session.commit()
-        flash("Patient Condition Updated Successfully")
-        # then return to patient details page
-        return redirect(url_for('get_patient_details', mrn=patient_procedure.mrn))
-
 ##### CREATE BASIC API ENDPOINTS #####
 # get all Patients
-
-
 @app.route("/api/patients/list", methods=["GET"])
 def get_patients():
     patients = Patients.query.all()
@@ -357,7 +272,7 @@ def get_patient(mrn):
         abort(404)
     return jsonify(patient.to_json())
 
-# BASIC POST ROUTES ##### [insert new data into the database]
+# BASIC POST ROUTES ##### [isnert new data into the database]
 # new patient
 
 

@@ -264,12 +264,12 @@ the second container is for vitals, the third container is for allergies, and th
                                                     <input type="text" class="form-control" name="id" value="{{row.proc_cpt}}" readonly>
                                                 </div>
 
-                                                <!-- create a drop down that shows db_procedures -->
+                                                <!-- create a drop down that shows db_conditions -->
                                                 <div class="form-group">
-                                                    <label for="proc_cpt">Procedure Code</label>
-                                                    <select class="form-control" name="proc_cpt">
-                                                        {% for row in db_procedures %}
-                                                            <option value="{{row.proc_cpt}}">{{row.proc_desc}}</option>
+                                                    <label for="icd10_code">Condition Code</label>
+                                                    <select class="form-control" name="icd10_code">
+                                                        {% for row in db_conditions %}
+                                                            <option value="{{row.icd10_code}}">{{row.icd10_description}}</option>
                                                         {% endfor %}
                                                     </select>
                                                 </div>
@@ -282,13 +282,33 @@ the second container is for vitals, the third container is for allergies, and th
                                         </div>
                                     </div>
                                 </div>
+
                                     {% endfor}
                                 </tr>
                             </table>
                         </div>
+
                     </div>
                 </div>
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
         </div>
     </div>
 </div>
