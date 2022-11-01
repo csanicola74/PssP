@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, abort
-# a wawy to connect to the sql database that was specifically designed for flask applications
+# a way to connect to the sql database that was specifically designed for flask applications
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
@@ -14,13 +14,9 @@ mysql_host = os.getenv("MYSQL_HOST")
 db = SQLAlchemy()
 app = Flask(__name__)
 
-# SqlAlchemy Database Configuration With Mysql
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:''@localhost/crud'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://' + mysql_username + \
+    ':' + mysql_password + '@' + mysql_host + ':3306/patient-portal'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://' + mysql_username + \':' + mysql_password + '@' + mysql_host + ':8080/patient_portal'
-# this is to keep track of database changes and save them in a special file
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'sdf#$#dfjkhdf0SDJH0df9fd98343fdfu34rf'
 
 db.init_app(app)
@@ -35,6 +31,7 @@ class Patients(db.Model):
     first_name = db.Column(db.String(255))
     last_name = db.Column(db.String(255))
     zip_code = db.Column(db.String(255), nullable=True)
+    dob = db.Column(db.String(255), nullable=True)
     gender = db.Column(db.String(255), nullable=True)
     contact_mobile = db.Column(db.String(255), nullable=True)
     contact_home = db.Column(db.String(255), nullable=True)
@@ -42,11 +39,12 @@ class Patients(db.Model):
 
     # this first function __init__ is to establish the class for python GUI
 
-    def __init__(self, mrn, first_name, last_name, zip_code, gender, contact_mobile, contact_home, insurance):
+    def __init__(self, mrn, first_name, last_name, zip_code, dob, gender, contact_mobile, contact_home, insurance):
         self.mrn = mrn
         self.first_name = first_name
         self.last_name = last_name
         self.zip_code = zip_code
+        self.dob = dob
         self.gender = gender
         self.contact_mobile = contact_mobile
         self.contact_home = contact_home
@@ -61,6 +59,7 @@ class Patients(db.Model):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'zip_code': self.zip_code,
+            'dob': self.dob,
             'gender': self.gender,
             'contact_mobile': self.contact_mobile,
             'contact_home': self.contact_home,
@@ -68,7 +67,7 @@ class Patients(db.Model):
         }
 
 
-class Conditions_patient(db.Model):
+class Conditions_Patient(db.Model):
     __tablename__ = 'patient_conditions'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -95,23 +94,23 @@ class Conditions(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     icd10_code = db.Column(db.String(255))
-    icd10_description = db.Column(db.String(255))
+    icd10_desc = db.Column(db.String(255))
 
     # this first function __init__ is to establish the class for python GUI
-    def __init__(self, icd10_code, icd10_description):
+    def __init__(self, icd10_code, icd10_desc):
         self.icd10_code = icd10_code
-        self.icd10_description = icd10_description
+        self.icd10_desc = icd10_desc
 
     # this second function is for the API endpoints to return JSON
     def to_json(self):
         return {
             'id': self.id,
             'icd10_code': self.icd10_code,
-            'icd10_description': self.icd10_description
+            'icd10_desc': self.icd10_desc
         }
 
 
-class Medications_patient(db.Model):
+class Medications_Patient(db.Model):
     __tablename__ = 'patient_medications'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -175,7 +174,7 @@ class Sx_Procedures(db.Model):
         }
 
 
-class Procedures_patient(db.Model):
+class Procedures_Patient(db.Model):
     __tablename__ = 'patient_procedure'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -224,13 +223,14 @@ def insert():  # note this function needs to match name in html form action
         mrn = request.form['mrn']
         first_name = request.form['first_name']
         last_name = request.form['last_name']
-        gender = request.form['gender']
         zip_code = request.form['zip_code']
+        dob = request.form['dob']
+        gender = request.form['gender']
         contact_mobile = request.form['contact_mobile']
         contact_home = request.form['contact_home']
         insurance = request.form['insurance']
-        new_patient = Patients(mrn, first_name, last_name, gender,
-                               zip_code, contact_mobile, contact_home, insurance)
+        new_patient = Patients(mrn, first_name, last_name,
+                               zip_code, dob, gender, contact_mobile, contact_home, insurance)
         db.session.add(new_patient)
         db.session.commit()
         flash("Patient Inserted Successfully")
@@ -272,9 +272,9 @@ def delete(mrn):  # note this function needs to match name in html form action
 @app.route('/details/<string:mrn>', methods=['GET'])
 def get_patient_details(mrn):
     patient_details = Patients.query.filter_by(mrn=mrn).first()
-    patient_conditions = Conditions_patient.query.filter_by(mrn=mrn).all()
-    patient_medications = Medications_patient.query.filter_by(mrn=mrn).all()
-    patient_procedures = Procedures_patient.query.filter_by(mrn=mrn).all()
+    patient_conditions = Conditions_Patient.query.filter_by(mrn=mrn).all()
+    patient_medications = Medications_Patient.query.filter_by(mrn=mrn).all()
+    patient_procedures = Procedures_Patient.query.filter_by(mrn=mrn).all()
     db_conditions = Conditions.query.all()
     db_medications = Medications.query.all()
     db_procedures = Sx_Procedures.query.all()
@@ -292,7 +292,7 @@ def update_conditions():  # note this function needs to match name in html form 
         print('form_id', form_id)
         form_icd10_code = request.form.get('icd10_code')
         print('form_icd10_code', form_icd10_code)
-        patient_condition = Conditions_patient.query.filter_by(
+        patient_condition = Conditions_Patient.query.filter_by(
             id=form_id).first()
         print('patient_condition', patient_condition)
         patient_condition.icd10_code = request.form.get('icd10_code')
@@ -310,7 +310,7 @@ def update_medications():  # note this function needs to match name in html form
         print('form_id', form_id)
         form_med_ndc = request.form.get('med_ndc')
         print('form_med_ndc', form_med_ndc)
-        patients_medications = Medications_patient.query.filter_by(
+        patients_medications = Medications_Patient.query.filter_by(
             id=form_id).first()
         print('patients_medications', patients_medications)
         patients_medications.med_ndc = request.form.get('med_ndc')
@@ -328,7 +328,7 @@ def update_procedures():  # note this function needs to match name in html form 
         print('form_id', form_id)
         form_proc_cpt = request.form.get('proc_cpt')
         print('form_proc_cpt', form_proc_cpt)
-        patient_procedure = Procedures_patient.query.filter_by(
+        patient_procedure = Procedures_Patient.query.filter_by(
             id=form_id).first()
         print('patient_procedure', patient_procedure)
         patient_procedure.proc_cpt = request.form.get('proc_cpt')
@@ -368,7 +368,13 @@ def create_patient():
     patient = Patients(
         mrn=request.json.get('mrn'),
         first_name=request.json.get('first_name'),
-        last_name=request.json.get('last_name')
+        last_name=request.json.get('last_name'),
+        zip_code=request.json.get('zip_code'),
+        dob=request.json.get('dob'),
+        gender=request.json.get('gender'),
+        contact_mobile=request.json.get('contact_mobile'),
+        contact_home=request.json.get('contact_home'),
+        insurance=request.json.get('insurance')
     )
     db.session.add(patient)
     db.session.commit()
@@ -386,7 +392,7 @@ def update_patient(mrn):
     if patient is None:
         abort(404)
     patient.first_name = request.json.get('first_name', patient.first_name)
-    patient.last_name = request.json.get('price', patient.last_name)
+    patient.last_name = request.json.get('last_name', patient.last_name)
     db.session.commit()
     return jsonify(patient.to_json())
 
